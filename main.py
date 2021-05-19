@@ -16,6 +16,7 @@ import pandas as pd
 import uuid
 import bs4
 import hashlib
+import argparse
 
 def getValue(item, field):
     obj = item[field]
@@ -24,9 +25,14 @@ def getValue(item, field):
 def getMonth(date):
     return int(date[1]) if len(date) > 1 else 99
 
-id = "j618"
-opath = "yamada.txt"
-targetYear = 2020
+parser = argparse.ArgumentParser()
+parser.add_argument('id', help='research mapのid')
+parser.add_argument('year', help='year, etc: 2020')
+
+args = parser.parse_args()
+
+id = args.id
+targetYear = int(args.year)
 
 df = requests.get("https://api.researchmap.jp/" + id).json()
 
@@ -306,8 +312,13 @@ for graph in graphs:
 
                 rows.append(row)
 
+for key in result:
+    print("〔{}〕{}\n".format(key, "／".join(result[key])))
+
+'''
 f2 = open("test.json", 'w')
 json.dump(result, f2, ensure_ascii=False, indent=4,sort_keys=True, separators=(',', ': '))
+'''
 
 text = ""
 
@@ -369,7 +380,7 @@ for key in out_activity:
     if len(out_activity[key]) > 0:
         rows.append("〔{}〕{}\n".format(key, "／".join(out_activity[key])))
 
-f = open(opath, 'w') # 書き込みモードで開く
+f = open(id+".txt", 'w') # 書き込みモードで開く
 f.writelines(rows) # シーケンスが引数。
 f.close()
 
