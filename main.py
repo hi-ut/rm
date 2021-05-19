@@ -214,14 +214,14 @@ for graph in graphs:
 
                 title = item["book_title"]["ja"]
 
-                authors = item["authors"]["ja"]
+                authors = getValue(item, "authors")
                 
                 author = []
 
                 for a in authors:
                     author.append(a["name"])
 
-                publication_name = item["publisher"]["ja"]
+                publication_name = getValue(item, "publisher")
 
                 total_page = ""
                 if "total_page" in item:
@@ -364,7 +364,7 @@ for key in out_activity:
     if len(out_activity[key]) > 0:
         rows.append("〔{}〕{}\n".format(key, "／".join(out_activity[key])))
 
-f = open(id+".txt", 'w') # 書き込みモードで開く
+f = open("{}_{}.txt".format(id, targetYear), 'w') # 書き込みモードで開く
 f.writelines(rows) # シーケンスが引数。
 f.close()
 
