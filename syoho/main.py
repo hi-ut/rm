@@ -20,22 +20,31 @@ targetYear = int(args.year)
 with open('data/{}.json'.format(targetYear)) as f:
     df = json.load(f)
 
+kans = '〇一二三四五六七八九'
+
+# 関数(1)_漢数字（例：二三五六〇一）を単純変換する関数
+def kan2num(text):
+    for i, tmp in enumerate(kans):
+        text = text.replace(tmp, str(i)) # replaceメソッドで置換
+    return text
+
 for item in df:
-    if len(item["研究の概要"]) == 0:
+    if len(item["課題の概要"]) == 0:
         continue
 
-    money = int(item["研究経費"])
-    # money = int2kanji(money)
-    money = str(money)+"円"
+    money = item["研究経費"]
+    money = kan2num(money)
+
+    no = item["id"]
     
     values = {
-        "title": item["研究課題名"],
-        "money": money,
-        "main": item["研究代表者"],
-        "sub_in": item["所内共同研究者"],
-        "sub_out": item["所外共同研究者"],
-        "abst": item["（１）課題の概要"],
-        "output": item["（２）研究の成果"]
+        "title": item["研究課題名"].strip(),
+        "money": money.strip(),
+        "main": item["研究代表者"].strip(),
+        "sub_in": item["所内共同研究者"].strip(),
+        "sub_out": item["所外共同研究者"].strip(),
+        "abst": item["課題の概要"].strip(),
+        "output": item["研究の成果"].strip()
     }
     
 
@@ -52,17 +61,6 @@ for item in df:
 （２）研究の成果
 {output}'''.format(**values)
 
-    print(output)
-
-
-
-'''
-for key in out_activity:
-    if len(out_activity[key]) > 0:
-        rows.append("〔{}〕{}\n".format(key, "／".join(out_activity[key])))
-
-f = open("{}_{}.txt".format(id, targetYear), 'w') # 書き込みモードで開く
-f.writelines(rows) # シーケンスが引数。
-f.close()
-
-'''
+    Html_file= open("{}/html/{}.txt".format(targetYear, no),"w")
+    Html_file.write(output)
+    Html_file.close()
