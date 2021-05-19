@@ -1,24 +1,33 @@
 import json
 import requests
 import argparse
+import docx
+import os
 
 def getValue(item, field):
+    if field not in item:
+        return []
     obj = item[field]
     return obj["ja"] if "ja" in obj else obj["en"]
 
 def getMonth(date):
     return int(date[1]) if len(date) > 1 else 99
 
+def join(arr):
+    return "／".join(arr)
+
 parser = argparse.ArgumentParser()
-parser.add_argument('id', help='research mapのid')
+parser.add_argument('hi_id', help='編纂所のid, etc: nakamura')
+parser.add_argument('rm_id', help='research mapのid, etc: nakamura.satoru')
 parser.add_argument('year', help='year, etc: 2020')
 
 args = parser.parse_args()
 
-id = args.id
+rm_id = args.rm_id
+hi_id = args.hi_id
 targetYear = int(args.year)
 
-df = requests.get("https://api.researchmap.jp/" + id).json()
+df = requests.get("https://api.researchmap.jp/" + rm_id).json()
 
 graphs = df["@graph"]
 
@@ -158,7 +167,7 @@ for graph in graphs:
 
                 title = item["paper_title"]["ja"]
 
-                authors = item["authors"]["ja"]
+                authors = getValue(item, "authors")
                 
                 author = []
 
@@ -238,6 +247,10 @@ for graph in graphs:
 
         for item in items:
 
+            #要チェック
+            if "from_date" not in item:
+                continue
+
             from_date = item["from_date"].split("-")
             to_date = item["to_date"].split("-")
 
@@ -246,16 +259,16 @@ for graph in graphs:
 
             if (targetYear >= from_year) or (targetYear < to_year):
 
-                title = item["research_project_title"]["ja"]
+                title = getValue(item, "research_project_title")
 
-                authors = item["investigators"]["ja"]
+                authors = getValue(item, "investigators")
                 
                 author = []
 
                 for a in authors:
                     author.append(a["name"])
 
-                main_author = author[0]
+                main_author = author[0] if len(author) > 0 else ""
 
                 category = ""
                 if "category" in item:
@@ -280,11 +293,11 @@ for graph in graphs:
             to_date = item["to_date"].split("-")
 
             from_year = int(from_date[0])
-            from_month = int(from_date[1])
+            from_month = getMonth(from_date)
             to_year = int(to_date[0])
             to_month = int(to_date[1]) if len(to_date) > 1 else 99
 
-            if (targetYear >= from_year and from_month >= 4) and (targetYear < to_year and (to_month < 4 or to_month == 99)):
+            if (targetYear >= from_year and (from_month == 99 or from_month >= 4)) and (targetYear < to_year and (to_month < 4 or to_month == 99)):
                 association = ""
                 if "association" in item:
                     association = item["association"]["ja"]
@@ -296,75 +309,39 @@ for graph in graphs:
 
                 rows.append(row)
 
-for key in result:
-    print("〔{}〕{}\n".format(key, "／".join(result[key])))
+gyosekiList = requests.get("https://hi-ut.github.io/assets/json/faculty/gyosekiList.json").json()
+for item in gyosekiList:
+    if item["label"] == hi_id:
+        value = item["value"]
+        gyoseki = {}
+        for obj in value:
+            label = obj["項目"]
+            desc = obj["内容"]
+            if label not in gyoseki:
+                gyoseki[label] = []
+            gyoseki[label].append(desc)
 
-'''
-f2 = open("test.json", 'w')
-json.dump(result, f2, ensure_ascii=False, indent=4,sort_keys=True, separators=(',', ': '))
-'''
+result["name"] = gyoseki["【氏名】"]
+result["department"] = gyoseki["【所属】"]
+result["position"] = gyoseki["【職位】"]
+result["theme"] = gyoseki["【研究テーマ】"]
+result["saiho"] = ["松尾大社での調査・撮影"]
+result["gakunai"] = ["情報基盤センター", "学術資産アーカイブ化推進室"]
+result["syonai"] = ["前近代日本史情報国際センター運営委員会", "電子計算機緊急対応チーム", "情報支援室"]
+result["job"] = ["国立歴史民俗学博物館", "東京外国語大学 アジア・アフリカ言語文化研究所", "国立国会図書館"]
 
-text = ""
+doc = docx.Document("template.docx")
 
-name = "中村覚"
-org = "附属前近代日本史情報国際センター"
-pos = "助教"
-theme = "多様な情報の関連付けによる史料活用と研究環境の高度化に関する研究"
+for para in doc.paragraphs:
+    text = para.text
 
-rows = []
-rows.append("{}　{}　{}\n".format(name, org, pos))
-rows.append("【研究活動】\n")
-rows.append("研究テーマ　{}\n".format(theme))
+    for key in result:
+        target = "{"+key+"}"
+        if target in text:
+            text = text.replace(target, join(result[key]))
 
-if len(result["published_papers"]) > 0:
-    rows.append("〔論文〕{}\n".format("／".join(result["published_papers"])))
+    para.text = text
 
-if len(result["misc"]) > 0:
-    rows.append("〔MISC〕{}\n".format("／".join(result["misc"])))
-
-if len(result["books_etc"]) > 0:
-    rows.append("〔書籍等出版物〕{}\n".format("／".join(result["books_etc"])))
-
-if len(result["presentations"]) > 0:
-    rows.append("〔講演・口頭発表等〕{}\n".format("／".join(result["presentations"])))
-
-if len(result["research_projects"]) > 0:
-    rows.append("〔科学研究費補助金による研究〕{}\n".format("／".join(result["research_projects"])))
-
-rows.append("【所・学内業務】\n")
-
-in_1 = {
-    "史料採訪" : ["松尾大社での調査・撮影"],
-}
-
-for key in in_1:
-    if len(in_1[key]) > 0:
-        rows.append("〔{}〕{}\n".format(key, "／".join(in_1[key])))
-
-rows.append("【所・学内行政】\n")
-
-in_2 = {
-    "学内" : ["情報基盤センター", "学術資産アーカイブ化推進室"],
-    "所内" : ["前近代日本史情報国際センター運営委員会", "電子計算機緊急対応チーム", "情報支援室"]
-}
-
-for key in in_2:
-    if len(in_2[key]) > 0:
-        rows.append("〔{}〕{}\n".format(key, "／".join(in_2[key])))
-
-rows.append("【学外活動】\n")
-
-out_activity = {
-    "教育" : [],
-    "委員会" : result["committee_memberships"],
-    "共同研究員" : ["国立歴史民俗学博物館", "東京外国語大学 アジア・アフリカ言語文化研究所", "国立国会図書館"]
-}
-
-for key in out_activity:
-    if len(out_activity[key]) > 0:
-        rows.append("〔{}〕{}\n".format(key, "／".join(out_activity[key])))
-
-f = open("{}_{}.txt".format(id, targetYear), 'w') # 書き込みモードで開く
-f.writelines(rows) # シーケンスが引数。
-f.close()
-
+opath = "data/{}/{}.docx".format(targetYear, hi_id)
+os.makedirs(os.path.dirname(opath), exist_ok=True)
+doc.save(opath)
