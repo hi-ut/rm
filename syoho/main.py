@@ -20,8 +20,8 @@ args = parser.parse_args()
 type_ = args.type
 targetYear = int(args.year)
 
-with open('data/{}/{}.json'.format(targetYear, type_)) as f:
-    df = json.load(f)
+url = "https://script.google.com/macros/s/AKfycbzOXX4-GmW1GWevQBV5R1xSxP9WAcDec4VnVfNVFbaOV4F-M1v1oV8ls9gewUxUEtc0Ew/exec?sheet={}".format("一般" if type_ == "ippan" else "特定")
+df = requests.get(url).json()
 
 kans = '〇一二三四五六七八九'
 
@@ -59,10 +59,10 @@ for item in df:
 　所外共同研究者　{sub_out}
 研究の概要
 （１）課題の概要
-{abst}
+　{abst}
 
 （２）研究の成果
-{output}'''.format(**values)
+　{output}'''.format(**values)
 
     opath = "{}/{}/html/{}.txt".format(targetYear, type_, no)
     os.makedirs(os.path.dirname(opath), exist_ok=True)

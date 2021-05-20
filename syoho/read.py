@@ -2,6 +2,7 @@ import docx
 import argparse
 import json
 import os
+import requests
 
 parser = argparse.ArgumentParser()
 parser.add_argument('type', help='type, etc: tokutei')
@@ -12,8 +13,8 @@ args = parser.parse_args()
 type_ = args.type
 targetYear = int(args.year)
 
-with open('data/{}/{}.json'.format(targetYear, type_)) as f:
-    df = json.load(f)
+url = "https://script.google.com/macros/s/AKfycbzOXX4-GmW1GWevQBV5R1xSxP9WAcDec4VnVfNVFbaOV4F-M1v1oV8ls9gewUxUEtc0Ew/exec?sheet={}".format("一般" if type_ == "ippan" else "特定")
+df = requests.get(url).json()
 
 for item in df:
     
