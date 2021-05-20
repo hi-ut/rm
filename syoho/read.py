@@ -1,16 +1,18 @@
 import docx
 import argparse
 import json
-
+import os
 
 parser = argparse.ArgumentParser()
+parser.add_argument('type', help='type, etc: tokutei')
 parser.add_argument('year', help='year, etc: 2020')
 
 args = parser.parse_args()
 
+type_ = args.type
 targetYear = int(args.year)
 
-with open('data/{}.json'.format(targetYear)) as f:
+with open('data/{}/{}.json'.format(targetYear, type_)) as f:
     df = json.load(f)
 
 for item in df:
@@ -44,4 +46,6 @@ for item in df:
             if target in text:
                 para.text = text.replace(target, values[key])
 
-    doc.save("{}/所報/{}.docx".format(targetYear, no))
+    opath = "{}/{}/所報/{}.docx".format(targetYear, type_, no)
+    os.makedirs(os.path.dirname(opath), exist_ok=True)
+    doc.save(opath)

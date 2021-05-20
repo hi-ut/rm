@@ -2,6 +2,7 @@ import json
 import requests
 import argparse
 from kanjize import int2kanji, kanji2int
+import os
 
 def getValue(item, field):
     obj = item[field]
@@ -11,13 +12,15 @@ def getMonth(date):
     return int(date[1]) if len(date) > 1 else 99
 
 parser = argparse.ArgumentParser()
+parser.add_argument('type', help='type, etc: tokutei')
 parser.add_argument('year', help='year, etc: 2020')
 
 args = parser.parse_args()
 
+type_ = args.type
 targetYear = int(args.year)
 
-with open('data/{}.json'.format(targetYear)) as f:
+with open('data/{}/{}.json'.format(targetYear, type_)) as f:
     df = json.load(f)
 
 kans = '〇一二三四五六七八九'
@@ -61,6 +64,8 @@ for item in df:
 （２）研究の成果
 {output}'''.format(**values)
 
-    Html_file= open("{}/html/{}.txt".format(targetYear, no),"w")
+    opath = "{}/{}/html/{}.txt".format(targetYear, type_, no)
+    os.makedirs(os.path.dirname(opath), exist_ok=True)
+    Html_file= open(opath,"w")
     Html_file.write(output)
     Html_file.close()
