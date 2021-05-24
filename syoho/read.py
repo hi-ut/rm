@@ -16,7 +16,8 @@ targetYear = int(args.year)
 url = "https://script.google.com/macros/s/AKfycbzOXX4-GmW1GWevQBV5R1xSxP9WAcDec4VnVfNVFbaOV4F-M1v1oV8ls9gewUxUEtc0Ew/exec?sheet={}".format("一般" if type_ == "ippan" else "特定")
 df = requests.get(url).json()
 
-for item in df:
+for i in range(len(df)):
+    item = df[i]
     
     if len(item["課題の概要"]) == 0:
         continue
@@ -47,6 +48,6 @@ for item in df:
             if target in text:
                 para.text = text.replace(target, values[key])
 
-    opath = "{}/{}/所報/{}.docx".format(targetYear, type_, no)
+    opath = "{}/{}/所報/{}_{}.docx".format(targetYear, type_, str(i+1).zfill(2), no)
     os.makedirs(os.path.dirname(opath), exist_ok=True)
     doc.save(opath)

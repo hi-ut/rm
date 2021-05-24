@@ -31,7 +31,9 @@ def kan2num(text):
         text = text.replace(tmp, str(i)) # replaceメソッドで置換
     return text
 
-for item in df:
+for i in range(len(df)):
+    item = df[i]
+    
     if len(item["課題の概要"]) == 0:
         continue
 
@@ -64,7 +66,7 @@ for item in df:
 （２）研究の成果
 　{output}'''.format(**values)
 
-    opath = "{}/{}/html/{}.txt".format(targetYear, type_, no)
+    opath = "{}/{}/html/{}_{}.txt".format(targetYear, type_, str(i+1).zfill(2), no)
     os.makedirs(os.path.dirname(opath), exist_ok=True)
     Html_file= open(opath,"w")
     Html_file.write(output)
