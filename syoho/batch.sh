@@ -1,6 +1,8 @@
-python main.py ippan 2020
-python main.py tokutei 2020
-python read.py ippan 2020
-python read.py tokutei 2020
-python combine.py ippan 2020
-python combine.py tokutei 2020
+year=2021
+gas=https://script.google.com/macros/s/AKfycbxnoyx_t15Ve7ItC8L3KspKBqOJAbYcAuqfmR6KjG7zasdGxyQ-65vhR39C6NX4xdxyxQ/exec
+# python main.py ippan $year $gas
+# python main.py tokutei $year $gas
+python read.py ippan $year $gas
+python read.py tokutei $year $gas
+python combine.py ippan $year
+python combine.py tokutei $year

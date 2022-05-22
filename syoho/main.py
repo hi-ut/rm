@@ -14,13 +14,16 @@ def getMonth(date):
 parser = argparse.ArgumentParser()
 parser.add_argument('type', help='type, etc: tokutei')
 parser.add_argument('year', help='year, etc: 2020')
+parser.add_argument('gas', help='url')
 
 args = parser.parse_args()
 
 type_ = args.type
 targetYear = int(args.year)
 
-url = "https://script.google.com/macros/s/AKfycbzOXX4-GmW1GWevQBV5R1xSxP9WAcDec4VnVfNVFbaOV4F-M1v1oV8ls9gewUxUEtc0Ew/exec?sheet={}".format("一般" if type_ == "ippan" else "特定")
+# gas = "https://script.google.com/macros/s/AKfycbxnoyx_t15Ve7ItC8L3KspKBqOJAbYcAuqfmR6KjG7zasdGxyQ-65vhR39C6NX4xdxyxQ/exec"
+
+url = "{}?sheet={}".format(args.gas, "一般" if type_ == "ippan" else "特定")
 df = requests.get(url).json()
 
 kans = '〇一二三四五六七八九'

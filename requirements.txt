@@ -1,0 +1,3 @@
+kanjize
+python-docx
+docxcompose
